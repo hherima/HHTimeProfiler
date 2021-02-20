@@ -80,7 +80,7 @@ hello
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  spec.source       = { :git => "https://github.com/hherima/HHTimeProfiler.git", :tag => "s.version" }
+  spec.source       = { :git => "https://github.com/hherima/HHTimeProfiler.git", :tag => '0.0.1'}
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -93,7 +93,6 @@ hello
 
   spec.source_files  = "TimeProfiler/*{.h,.m,.c}", "TimeProfiler/Core/*{.h,.m,.c,.s}", "TimeProfiler/fishhook/*{.h,.m,.c,.s}"
   spec.exclude_files = "TimeProfiler/Exclude"
-  spec.public_header_files = 'UIKit/*.h'
 
 #  spec.public_header_files = "TimeProfiler/TimeProfilerHeader.h"
   
