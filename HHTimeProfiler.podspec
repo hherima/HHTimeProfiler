@@ -80,7 +80,7 @@ hello
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  spec.source       = { :git => "https://github.com/hherima/HHTimeProfiler.git", :tag => '0.0.1'}
+  spec.source       = { :git => "https://github.com/hherima/HHTimeProfiler.git", :tag => '0.0.2'}
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
