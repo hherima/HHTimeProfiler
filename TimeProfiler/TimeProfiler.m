@@ -312,7 +312,6 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
 - (NSString *)debug_getMethodCallTracingStr:(TPCallRecord *)callRecord
 {
     NSMutableString *str = [[NSMutableString alloc] init];
-    double ms = callRecord->costTime/1000.0;
     
     if (class_isMetaClass(callRecord->cls)){
         [str appendString:@"+"];

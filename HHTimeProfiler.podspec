@@ -25,7 +25,7 @@ Pod::Spec.new do |spec|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   spec.description  = <<-DESC
-hello
+通过fishhook hook send_msg方法，将生成的文件。用chrome的chrome://tracing/工具打开显示火焰图。然后展示出函数调用栈和时间。
                    DESC
 
   spec.homepage     = "https://github.com/hherima/HHTimeProfiler"
