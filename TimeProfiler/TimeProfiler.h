@@ -28,8 +28,8 @@ FOUNDATION_EXPORT NSNotificationName _Nonnull const TPTimeProfilerProcessedDataN
 - (void)TPStartTrace:(char *)featureName;
 - (void)TPStopTrace;
 
-- (void)TPSetMaxDepth:(int)depth;
-- (void)TPSetCostMinTime:(uint64_t)time; //单位为us，1ms = 1000us
+- (void)TPSetMaxDepth:(int)depth;//默认30
+- (void)TPSetCostMinTime:(uint64_t)time; //单位为us，1ms = 1000us 默认10us
 - (void)TPSetFilterClass:(NSArray *)classArr; //需要过滤的类，不调用此方法，默认为TimeProfilerVC、TPRecordHierarchyModel、 TPRecordCell、TPRecordModel等TimeProfiler本身类（不统计过滤的类）
 
 @end

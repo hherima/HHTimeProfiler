@@ -152,7 +152,7 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
             }
         }
         
-        TPRecordModel *model = [[TPRecordModel alloc] initWithCls:record->cls sel:record->sel time:record->costTime depth:record->depth total:total is_objc_msgSendSuper:record->is_objc_msgSendSuper];
+        TPRecordModel *model = [[TPRecordModel alloc] initWithCls:record->cls sel:record->sel bTime:record->beginTime eTime:record->endTime  depth:record->depth total:total is_objc_msgSendSuper:record->is_objc_msgSendSuper];
         [arr insertObject:model atIndex:0];
     }
 }
@@ -175,6 +175,9 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
         #if IS_SHOW_DEBUG_INFO_IN_CONSOLE
         NSMutableString *textM = [[NSMutableString alloc] init];
         #endif
+        NSMutableString *tracingTextM = [[NSMutableString alloc] init];
+        [tracingTextM appendString:@"["];
+        
         NSMutableArray *allMethodRecord = [NSMutableArray array];
         int i = 0, j;
         while (i <= mainThreadCallRecord->index) {
@@ -182,11 +185,16 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
             for (j = i; j <= mainThreadCallRecord->index;j++)
             {
                 TPCallRecord *callRecord = &mainThreadCallRecord->record[j];
-                #if IS_SHOW_DEBUG_INFO_IN_CONSOLE
                 NSString *str = [self debug_getMethodCallStr:callRecord];
+                #if IS_SHOW_DEBUG_INFO_IN_CONSOLE
                 [textM appendString:str];
                 [textM appendString:@"\r"];
                 #endif
+                //下面是生成chrome的tracing view 可以识别的格式
+                str = [self debug_getMethodCallTracingStr:callRecord];
+                [tracingTextM appendString:str];
+                
+                
                 [self setRecordDic:methodRecord record:callRecord];
                 if (callRecord->depth==0 || j==mainThreadCallRecord->index)
                 {
@@ -203,7 +211,12 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
             
             i = j+1;
         }
-        
+
+        if (tracingTextM.length > 2) {
+            [tracingTextM deleteCharactersInRange:NSMakeRange(tracingTextM.length-2,2)];
+        }
+        [tracingTextM appendString:@"]"];
+
         TPModel *model = [[TPModel alloc] init];
         model.sequentialMethodRecord = [[NSArray alloc] initWithArray:allMethodRecord copyItems:YES];
         model.costTimeSortMethodRecord = [self sortCostTimeRecord:[[NSArray alloc] initWithArray:allMethodRecord copyItems:YES]];
@@ -224,8 +237,9 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
             free(mainThreadCallRecord);
         }
         #if IS_SHOW_DEBUG_INFO_IN_CONSOLE
-        [self debug_printMethodRecord:textM];
+        [self debug_printMethodRecord:textM tracing:tracingTextM];
         #endif
+        [self writeTracingTextToFile:tracingTextM feature:model.featureName];
     });
 }
 
@@ -256,14 +270,17 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
     return result;
 }
 
-#if IS_SHOW_DEBUG_INFO_IN_CONSOLE
 
-- (void)debug_printMethodRecord:(NSString *)text
+- (void)debug_printMethodRecord:(NSString *)text tracing:(NSString*)tracingText
 {
-    //记录的顺序是方法完成时间
-    NSLog(@"=========printMethodRecord==Start================");
-    NSLog(@"%@", text);
-    NSLog(@"=========printMethodRecord==End================");
+    //记录的顺序是方法 完成时间
+    NSLog(@"=========printMethodRecord==Start================\n");
+    printf("%s", [text UTF8String]);//使用printf是为了打印完整的日志
+    NSLog(@"\n=========printMethodRecord==End================\n");
+    
+    NSLog(@"=========tracingText==Start================\n");
+    printf("%s", [tracingText UTF8String]);
+    NSLog(@"\n=========tracingText==End================\n");
 }
 
 - (NSString *)debug_getMethodCallStr:(TPCallRecord *)callRecord
@@ -291,8 +308,43 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
     }
     return str.copy;
 }
+//获取能够让chrome tracing识别的json格式
+- (NSString *)debug_getMethodCallTracingStr:(TPCallRecord *)callRecord
+{
+    NSMutableString *str = [[NSMutableString alloc] init];
+    double ms = callRecord->costTime/1000.0;
+    
+    if (class_isMetaClass(callRecord->cls)){
+        [str appendString:@"+"];
+    }else{
+        [str appendString:@"-"];
+    }
+    if (callRecord->is_objc_msgSendSuper) {
+        [str appendString:[NSString stringWithFormat:@"((super)%@　　%@)", NSStringFromClass(callRecord->cls), NSStringFromSelector(callRecord->sel)]];
+    }else{
+        [str appendString:[NSString stringWithFormat:@"(%@　　%@)", NSStringFromClass(callRecord->cls), NSStringFromSelector(callRecord->sel)]];
+    }
+    
+    //
+    NSString* result = [NSString stringWithFormat:
+     @"{\"name\": \"%@\", \"ph\": \"B\", \"pid\": \"Main\", \"tid\": \"thread\", \"ts\": %lld},{\"name\": \"%@\", \"ph\": \"E\", \"pid\": \"Main\", \"tid\": \"thread\", \"ts\": %lld},\n",str,callRecord->beginTime,str,callRecord->endTime];
+    
 
-#endif
+    return result;
+}
+
+//将记录的函数调用时间写入文件
+-(void)writeTracingTextToFile:(NSString*)tracingText feature:(NSString*)feature{
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSError *err=nil;
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *path = [paths firstObject];
+        path = [path stringByAppendingPathComponent:feature];
+        path = [path stringByAppendingString:@".json"];
+        [tracingText writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&err];
+    });
+    
+}
 
 - (NSArray *)sortCostTimeRecord:(NSArray *)arr
 {

@@ -10,14 +10,16 @@
 
 @implementation TPRecordModel
 
-- (instancetype)initWithCls:(Class)cls sel:(SEL)sel time:(uint64_t)costTime depth:(int)depth total:(int)total is_objc_msgSendSuper:(BOOL)is_objc_msgSendSuper
+- (instancetype)initWithCls:(Class)cls sel:(SEL)sel bTime:(uint64_t)begin eTime:(uint64_t)end depth:(int)depth total:(int)total is_objc_msgSendSuper:(BOOL)is_objc_msgSendSuper
 {
     self = [super init];
     if (self) {
         self.callCount = 0;
         self.cls = cls;
         self.sel = sel;
-        self.costTime = costTime;
+        self.costTime = end - begin;
+        self.begin = begin;
+        self.end = end;
         self.depth = depth;
         self.total = total;
         self.isUsed = NO;

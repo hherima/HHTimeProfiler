@@ -61,9 +61,9 @@ static pthread_key_t threadKeyLR;
 static MainThreadMethodStack *mainThreadStack = NULL;
 static TPMainThreadCallRecord *mainThreadCallRecord = NULL;
 static bool CallRecordEnable = YES;
-static int maxDepth = 3;
+static int maxDepth = 30;
 static int ignoreCallNum = 0;
-static uint64_t costMinTime = 1000;
+static uint64_t costMinTime = 10;
 
 static inline uint64_t getVirtualCallTime()
 {
@@ -113,6 +113,8 @@ static inline void popCallRecord(BOOL is_objc_msgSendSuper)
             callRecord->cls = record->cls;
             callRecord->depth = depth;
             callRecord->costTime = costTime;
+            callRecord->beginTime = record->time;
+            callRecord->endTime = time;
             callRecord->sel = record->sel;
             callRecord->is_objc_msgSendSuper = is_objc_msgSendSuper;
         }
