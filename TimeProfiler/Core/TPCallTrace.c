@@ -181,7 +181,9 @@ void initData(char *featureName)
         mainThreadCallRecord->allocLength = 128;
         mainThreadCallRecord->record = (TPCallRecord *)malloc(mainThreadCallRecord->allocLength * sizeof(TPCallRecord));
         mainThreadCallRecord->index = -1;
-        mainThreadCallRecord->featureName = featureName;
+        char* dest = malloc(strlen(featureName));
+        strcpy(dest, featureName);
+        mainThreadCallRecord->featureName = dest;
     }
     
     if (!mainThreadStack) {
@@ -217,6 +219,9 @@ void startTrace(char *featureName) {
 void stopTrace() {
     CallRecordEnable = NO;
     if (mainThreadStack) {
+        if (!mainThreadCallRecord) {
+            free(mainThreadCallRecord->featureName);
+        }
         free(mainThreadStack->stack);
         free(mainThreadStack);
         mainThreadStack = NULL;
