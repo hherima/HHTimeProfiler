@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "HHTimeProfiler"
-  spec.version      = "1.2.0"
+  spec.version      = "1.2.1"
   spec.summary      = "通过fishhook hook send_msg方法，然后展示出函数调用栈和时间，支持chrome的火焰图的格式"
 
   # This description is used to generate tags and improve search results.
