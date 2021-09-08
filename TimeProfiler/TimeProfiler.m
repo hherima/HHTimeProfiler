@@ -338,6 +338,10 @@ NSNotificationName const TPTimeProfilerProcessedDataNotification = @"TPTimeProfi
         NSError *err=nil;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *path = [paths firstObject];
+        path = [path stringByAppendingPathComponent:@"HHTimeProfile"];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+            [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
+        }
         path = [path stringByAppendingPathComponent:feature];
         path = [path stringByAppendingString:@".json"];
         [tracingText writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&err];
